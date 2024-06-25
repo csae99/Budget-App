@@ -16,9 +16,9 @@ services:
       - POSTGRES_DB=budgy_development
     command: ["bash", "-c", "rm -f tmp/pids/server.pid && bundle exec rails server -b 0.0.0.0"]
   db:
-    image: postgres:14.1
+    image: postgres:15.3
     volumes:
-      - ./pgdata:/var/lib/postgresql/data
+      - ../pgdata:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER=Budgy
       - POSTGRES_PASSWORD=Budgy
@@ -26,3 +26,4 @@ services:
 
 volumes:
   pgdata:
+
