@@ -1,3 +1,32 @@
+# version: '3.9'
+# services:
+#   web:
+#     build: .
+#     ports:
+#       - "3000:3000"
+#     volumes:
+#       - .:/app
+#     depends_on:
+#       - db
+#     env_file:
+#       - .env  # Ensure this file exists with necessary environment variables
+#     environment:
+#       - POSTGRES_USER=Budgy
+#       - POSTGRES_PASSWORD=Budgy
+#       - POSTGRES_DB=budgy_development
+#     command: ["bash", "-c", "rm -f tmp/pids/server.pid && bundle exec rails server -b 0.0.0.0"]
+#   db:
+#     image: postgres:15.3
+#     volumes:
+#       - ../pgdata:/var/lib/postgresql/data
+#     environment:
+#       - POSTGRES_USER=Budgy
+#       - POSTGRES_PASSWORD=Budgy
+#       - POSTGRES_DB=budgy_development
+
+# volumes:
+#   pgdata:
+
 version: '3.9'
 services:
   web:
@@ -8,13 +37,16 @@ services:
       - .:/app
     depends_on:
       - db
+      - redis
+      - redis2
     env_file:
-      - .env  # Ensure this file exists with necessary environment variables
+      - .env
     environment:
       - POSTGRES_USER=Budgy
       - POSTGRES_PASSWORD=Budgy
       - POSTGRES_DB=budgy_development
     command: ["bash", "-c", "rm -f tmp/pids/server.pid && bundle exec rails server -b 0.0.0.0"]
+
   db:
     image: postgres:15.3
     volumes:
@@ -24,6 +56,26 @@ services:
       - POSTGRES_PASSWORD=Budgy
       - POSTGRES_DB=budgy_development
 
+  redis:
+    image: redis:7.2.5
+    ports:
+      - "6379:6379"
+    # sysctls:
+    #   net.core.somaxconn: 511
+    #   vm.overcommit_memory: 1
+    # command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+
+  redis2:
+    image: redis:2.8
+    container_name: redis2
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-data2:/data
+
 volumes:
   pgdata:
-
+  redis-data:
+  redis-data2:
