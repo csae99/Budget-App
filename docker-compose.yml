@@ -1,38 +1,28 @@
-# version: '3.9'
-# services:
-#   web:
-#     build: .
-#     ports:
-#       - "3000:3000"
-#     volumes:
-#       - .:/app
-#     depends_on:
-#       - db
-#     env_file:
-#       - .env  # Ensure this file exists with necessary environment variables
-#     environment:
-#       - POSTGRES_USER=Budgy
-#       - POSTGRES_PASSWORD=Budgy
-#       - POSTGRES_DB=budgy_development
-#     command: ["bash", "-c", "rm -f tmp/pids/server.pid && bundle exec rails server -b 0.0.0.0"]
-#   db:
-#     image: postgres:15.3
-#     volumes:
-#       - ../pgdata:/var/lib/postgresql/data
-#     environment:
-#       - POSTGRES_USER=Budgy
-#       - POSTGRES_PASSWORD=Budgy
-#       - POSTGRES_DB=budgy_development
-
-# volumes:
-#   pgdata:
-
 version: '3.9'
+
 services:
-  web:
+  web-blue:
     build: .
     ports:
-      - "3000:3000"
+      - "3001:3000"
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+      - redis2
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=Budgy
+      - POSTGRES_PASSWORD=Budgy
+      - POSTGRES_DB=budgy_development
+    command: ["bash", "-c", "rm -f tmp/pids/server.pid && bundle exec rails server -b 0.0.0.0"]
+
+  web-green:
+    build: .
+    ports:
+      - "3002:3000"
     volumes:
       - .:/app
     depends_on:
@@ -50,7 +40,7 @@ services:
   db:
     image: postgres:15.3
     volumes:
-      - ../pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER=Budgy
       - POSTGRES_PASSWORD=Budgy
@@ -59,11 +49,7 @@ services:
   redis:
     image: redis:7.2.5
     ports:
-      - "6379:6379"
-    # sysctls:
-    #   net.core.somaxconn: 511
-    #   vm.overcommit_memory: 1
-    # command: redis-server --appendonly yes
+      - "6381:6379"
     volumes:
       - redis-data:/data
 
@@ -71,9 +57,19 @@ services:
     image: redis:2.8
     container_name: redis2
     ports:
-      - "6380:6379"
+      - "6382:6379"
     volumes:
       - redis-data2:/data
+
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - web-blue
+      - web-green
 
 volumes:
   pgdata:
