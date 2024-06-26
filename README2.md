@@ -247,3 +247,85 @@ Below is a simplified diagram to illustrate the process:
    - By using NGINX and the Blue-Green strategy, traffic can be seamlessly switched between environments without downtime.
 
 This process ensures that users experience no downtime during deployments, with a smooth transition between the blue and green environments.
+
+```yaml
+version: '3.9'
+
+services:
+  web-blue:
+    build: .
+    ports:
+      - "127.0.0.1:3001:3000"
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+      - redis2
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=Budgy
+      - POSTGRES_PASSWORD=Budgy
+      - POSTGRES_DB=budgy_development
+    command: ["bash", "-c", "rm -f tmp/pids/server.pid && bundle exec rails server -b 0.0.0.0"]
+
+  web-green:
+    build: .
+    ports:
+      - "127.0.0.1:3002:3000"
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+      - redis2
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=Budgy
+      - POSTGRES_PASSWORD=Budgy
+      - POSTGRES_DB=budgy_development
+    command: ["bash", "-c", "rm-f tmp/pids/server.pid && bundle exec rails server -b 0.0.0.0"]
+
+  db:
+    image: postgres:15.3
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=Budgy
+      - POSTGRES_PASSWORD=Budgy
+      - POSTGRES_DB=budgy_development
+    ports:
+      - "127.0.0.1:5432:5432"
+
+  redis:
+    image: redis:7.2.5
+    ports:
+      - "127.0.0.1:6381:6379"
+    volumes:
+      - redis-data:/data
+
+  redis2:
+    image: redis:2.8
+    container_name: redis2
+    ports:
+      - "127.0.0.1:6382:6379"
+    volumes:
+      - redis-data2:/data
+
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - web-blue
+      - web-green
+
+volumes:
+  pgdata:
+  redis-data:
+  redis-data2:
+```
