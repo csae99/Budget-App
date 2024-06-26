@@ -4,15 +4,13 @@ services:
   web-blue:
     build: .
     ports:
-      - "3001:3000"
+      - "127.0.0.1:3001:3000"
     volumes:
       - .:/app
     depends_on:
       - db
       - redis
       - redis2
-    env_file:
-      - .env
     environment:
       - POSTGRES_USER=Budgy
       - POSTGRES_PASSWORD=Budgy
@@ -22,15 +20,13 @@ services:
   web-green:
     build: .
     ports:
-      - "3002:3000"
+      - "127.0.0.1:3002:3000"
     volumes:
       - .:/app
     depends_on:
       - db
       - redis
       - redis2
-    env_file:
-      - .env
     environment:
       - POSTGRES_USER=Budgy
       - POSTGRES_PASSWORD=Budgy
@@ -45,11 +41,12 @@ services:
       - POSTGRES_USER=Budgy
       - POSTGRES_PASSWORD=Budgy
       - POSTGRES_DB=budgy_development
-
+    ports:
+      - "127.0.0.1:5432:5432"  #"127.0.0.1:5432:5432"
   redis:
     image: redis:7.2.5
     ports:
-      - "6381:6379"
+      - "127.0.0.1:6381:6379"
     volumes:
       - redis-data:/data
 
@@ -57,7 +54,7 @@ services:
     image: redis:2.8
     container_name: redis2
     ports:
-      - "6382:6379"
+      - "127.0.0.1:6382:6379"
     volumes:
       - redis-data2:/data
 

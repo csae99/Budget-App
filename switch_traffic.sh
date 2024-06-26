@@ -41,7 +41,7 @@ events {}
 http {
     upstream backend {
         server $NEW_DEPLOYMENT;
-        server ${CURRENT_DEPLOYMENT%?} backup;
+        server ${CURRENT_DEPLOYMENT%?};
     }
 
     server {
