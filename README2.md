@@ -182,14 +182,8 @@ This configuration ensures that when you run `docker-compose up`, it will:
         docker-compose build
         docker-compose up -d
         ```
-    2. **Deploy New Changes and Switch Traffic:**
-        - Build and start the new environment not currently serving traffic.
-        - Use `switch_traffic.sh` to check the new environment and update NGINX configuration.
-        ```sh
-        docker-compose up -d web-green  # or web-blue
-        ./switch_traffic.sh
         ```
-    3. **Verify and Stop Old Environment:**
+    2. **Verify and Stop Old Environment:**
         ```sh
         docker-compose stop web-blue  # or web-green
         ```
@@ -199,7 +193,6 @@ This configuration ensures that when you run `docker-compose up`, it will:
 - **`Dockerfile.nginx`:** Builds the custom NGINX image.
 - **`nginx.conf`:** NGINX configuration file.
 - **`docker-compose.yml`:** Defines all services.
-- **`switch_traffic.sh`:** Script for switching traffic between environments.
 
 #### Diagram
 
