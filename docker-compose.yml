@@ -1,3 +1,4 @@
+
 version: '3.9'
 
 services:
@@ -16,6 +17,8 @@ services:
       - POSTGRES_PASSWORD=Budgy
       - POSTGRES_DB=budgy_development
     command: ["bash", "-c", "rm -f tmp/pids/server.pid && bundle exec rails server -b 0.0.0.0"]
+    networks:
+      - budget-net
 
   web-green:
     build: .
@@ -32,6 +35,8 @@ services:
       - POSTGRES_PASSWORD=Budgy
       - POSTGRES_DB=budgy_development
     command: ["bash", "-c", "rm -f tmp/pids/server.pid && bundle exec rails server -b 0.0.0.0"]
+    networks:
+      - budget-net
 
   db:
     image: postgres:15.3
@@ -41,20 +46,29 @@ services:
       - POSTGRES_USER=Budgy
       - POSTGRES_PASSWORD=Budgy
       - POSTGRES_DB=budgy_development
+    networks:
+      - budget-net
+
   redis:
     image: redis:7.2.5
+    container_name: redis
     ports:
-      - "127.0.0.1:6381:6379"
+      - "127.0.0.1:6379:6379"  
     volumes:
       - redis-data:/data
+    networks:
+      - budget-net
 
   redis2:
     image: redis:2.8
     container_name: redis2
     ports:
-      - "127.0.0.1:6382:6379"
+      - "127.0.0.1:6380:6380"
+    command: ["redis-server", "--port", "6380"]
     volumes:
       - redis-data2:/data
+    networks:
+      - budget-net
 
   nginx:
     build:
@@ -65,8 +79,14 @@ services:
     depends_on:
       - web-blue
       - web-green
+    networks:
+      - budget-net
 
 volumes:
-  pgdata:
+  pgdata: 
   redis-data:
   redis-data2:
+
+networks:
+  budget-net:
+
