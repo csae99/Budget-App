@@ -1,4 +1,3 @@
-
 version: '3.9'
 
 services:
@@ -11,7 +10,6 @@ services:
     depends_on:
       - db
       - redis
-      - redis2
     environment:
       - POSTGRES_USER=Budgy
       - POSTGRES_PASSWORD=Budgy
@@ -29,7 +27,6 @@ services:
     depends_on:
       - db
       - redis
-      - redis2
     environment:
       - POSTGRES_USER=Budgy
       - POSTGRES_PASSWORD=Budgy
@@ -59,14 +56,18 @@ services:
     networks:
       - budget-net
 
-  redis2:
-    image: redis:2.8
-    container_name: redis2
-    ports:
-      - "127.0.0.1:6380:6380"
-    command: ["redis-server", "--port", "6380"]
+  sidekiq:
+    build: .
+    command: ["bundle", "exec", "sidekiq"]
     volumes:
-      - redis-data2:/data
+      - .:/app
+    depends_on:
+      - db
+      - redis
+    environment:
+      - POSTGRES_USER=Budgy
+      - POSTGRES_PASSWORD=Budgy
+      - POSTGRES_DB=budgy_development
     networks:
       - budget-net
 
@@ -85,8 +86,6 @@ services:
 volumes:
   pgdata: 
   redis-data:
-  redis-data2:
 
 networks:
   budget-net:
-
