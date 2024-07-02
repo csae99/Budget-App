@@ -74,8 +74,8 @@ services:
 
   sidekiq:
     build: .
-    # command: ["bundle", "exec", "sidekiq"]
-    command: ["bundle", "exec", "sidekiq", "-c", "config/sidekiq.yaml"]
+    command: ["bundle", "exec", "sidekiq"]
+    # command: ["bundle", "exec", "sidekiq", "-c", "config/sidekiq.yml"]
     volumes:
       - .:/app
     depends_on:

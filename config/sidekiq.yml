@@ -1,26 +1,18 @@
----
-:verbose: true
-:concurrency: 3
-:queues:
-  - default
-  - mailers
-
-development:
-  :concurrency: 3
+# config/sidekiq.yml
+:production:
+  :concurrency: 5
   :queues:
-    - default
-    - mailers
-    - low_priority
-
-production:
-  :concurrency: 10
-  :queues:
-    - default
-    - mailers
     - critical
-
-staging:
+    - default
+  :url: redis://redis:6379/0
+:staging:
+  :concurrency: 5
+  :queues:
+    - critical
+    - default
+  :url: redis://redis:6379/0
+:development:
   :concurrency: 5
   :queues:
     - default
-    - mailers
+  :url: redis://redis:6379/0
