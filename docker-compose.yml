@@ -74,7 +74,8 @@ services:
 
   sidekiq:
     build: .
-    command: ["bundle", "exec", "sidekiq"]
+    # command: ["bundle", "exec", "sidekiq"]
+    command: ["bundle", "exec", "sidekiq", "-c", "config/sidekiq.yaml"]
     volumes:
       - .:/app
     depends_on:
@@ -109,4 +110,4 @@ volumes:
 
 networks:
   budget-net:
-  
+   driver: bridge

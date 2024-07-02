@@ -1,0 +1,26 @@
+---
+:verbose: true
+:concurrency: 3
+:queues:
+  - default
+  - mailers
+
+development:
+  :concurrency: 3
+  :queues:
+    - default
+    - mailers
+    - low_priority
+
+production:
+  :concurrency: 10
+  :queues:
+    - default
+    - mailers
+    - critical
+
+staging:
+  :concurrency: 5
+  :queues:
+    - default
+    - mailers

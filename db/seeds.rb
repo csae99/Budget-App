@@ -5,3 +5,15 @@
 #
 #   movies = Movie.create([{ name: "Star Wars" }, { name: "Lord of the Rings" }])
 #   Character.create(name: "Luke", movie: movies.first)
+# db/seeds.rb
+
+# Create a default admin user
+admin_user = User.find_or_initialize_by(email: 'admin@example.com') do |user|
+    user.password = 'password'
+    user.password_confirmation = 'password'
+    user.admin = true
+  end
+  admin_user.save!
+  
+  # Seed other data as needed
+  

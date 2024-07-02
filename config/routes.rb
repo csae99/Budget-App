@@ -1,7 +1,31 @@
+# Rails.application.routes.draw do
+#   # resources :category_records
+#   # resources :records
+#   # resources :categories
+
+#   devise_for :users
+#   devise_scope :user do
+#     authenticated :user do
+#       root 'categories#index', as: :authenticated_root
+#     end
+#     unauthenticated do
+#       root 'splash#index', as: :unauthenticated_root
+#     end
+#     get '/users/sign_out' => 'devise/sessions#destroy'
+#   resources :users, only: [:index]
+#   end
+#   resources :categories do 
+#     # resources :records, except: [:index]
+#     resources :records
+#   end
+# end
+require 'sidekiq/web'
+
 Rails.application.routes.draw do
-  # resources :category_records
-  # resources :records
-  # resources :categories
+  # Sidekiq web interface, only accessible to authenticated users
+  authenticate :user do
+    mount Sidekiq::Web => '/sidekiq'
+  end
 
   devise_for :users
   devise_scope :user do
@@ -12,10 +36,10 @@ Rails.application.routes.draw do
       root 'splash#index', as: :unauthenticated_root
     end
     get '/users/sign_out' => 'devise/sessions#destroy'
-  resources :users, only: [:index]
+    resources :users, only: [:index]
   end
-  resources :categories do 
-    # resources :records, except: [:index]
+
+  resources :categories do
     resources :records
   end
 end
