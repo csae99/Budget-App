@@ -7,6 +7,8 @@ ruby '3.1.2'
 gem 'rails', '~> 7.0.1'
 # Gemfile
 gem 'sidekiq'
+gem 'sidekiq-cron'
+
 gem 'redis'
 
 
