@@ -3,6 +3,7 @@ version: '3.9'
 services:
   web-blue:
     build: .
+    container_name: web-blue
     ports:
       - "127.0.0.1:3001:3000"
     volumes:
@@ -23,6 +24,7 @@ services:
 
   web-green:
     build: .
+    container_name: web-green
     ports:
       - "127.0.0.1:3002:3000"
     volumes:
@@ -43,6 +45,7 @@ services:
 
   db:
     image: postgres:15.3
+    container_name: postgres
     volumes:
       - pgdata:/var/lib/postgresql/data
     environment:
@@ -59,6 +62,8 @@ services:
       - "127.0.0.1:6379:6379"  
     volumes:
       - redis-data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
     networks:
       - budget-net
 
@@ -69,13 +74,15 @@ services:
       - "127.0.0.1:6380:6379"
     volumes:
       - redis2-data:/data
+      - ./redis2.conf:/usr/local/etc/redis/redis2.conf
+    command: ["redis-server", "/usr/local/etc/redis/redis2.conf"]
     networks:
       - budget-net
 
   sidekiq:
     build: .
-    command: ["bundle", "exec", "sidekiq"]
-    # command: ["bundle", "exec", "sidekiq", "-c", "config/sidekiq.yml"]
+    container_name: sidekiq
+    command: ["bundle", "exec", "sidekiq", "-C", "config/sidekiq.yml"]
     volumes:
       - .:/app
     depends_on:
@@ -110,4 +117,4 @@ volumes:
 
 networks:
   budget-net:
-   driver: bridge
+    driver: bridge
