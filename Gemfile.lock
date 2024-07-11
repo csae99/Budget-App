@@ -193,10 +193,7 @@ GEM
       thor (~> 1.0)
       zeitwerk (~> 2.5)
     rake (13.0.6)
-    redis (5.2.0)
-      redis-client (>= 0.22.0)
-    redis-client (0.22.2)
-      connection_pool
+    redis (4.8.1)
     regexp_parser (2.2.0)
     reline (0.3.1)
       io-console (~> 0.5)
@@ -228,10 +225,10 @@ GEM
       childprocess (>= 0.5, < 5.0)
       rexml (~> 3.2, >= 3.2.5)
       rubyzip (>= 1.2.2)
-    sidekiq (6.5.5)
-      connection_pool (>= 2.2.2)
+    sidekiq (6.5.12)
+      connection_pool (>= 2.2.5, < 3)
       rack (~> 2.0)
-      redis (>= 4.5.0)
+      redis (>= 4.5.0, < 5)
     sidekiq-cron (1.9.1)
       fugit (~> 1.8)
       sidekiq (>= 4.2.1)
@@ -284,12 +281,12 @@ DEPENDENCIES
   importmap-rails
   jbuilder
   pg (~> 1.1)
-  puma (~> 5.0)
+  puma (~> 5.6.1)
   rails (~> 7.0.1)
-  redis
+  redis (~> 4.5)
   rspec-rails
   selenium-webdriver
-  sidekiq
+  sidekiq (~> 6.5.10)
   sidekiq-cron
   sprockets-rails
   stimulus-rails

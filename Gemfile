@@ -6,10 +6,11 @@ ruby '3.1.2'
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem 'rails', '~> 7.0.1'
 # Gemfile
-gem 'sidekiq'
+gem 'sidekiq', '~> 6.5.10' # or newer version
+
 gem 'sidekiq-cron'
 
-gem 'redis'
+gem 'redis', '~> 4.5'
 
 
 # The original asset pipeline for Rails [https://github.com/rails/sprockets-rails]
@@ -20,7 +21,7 @@ gem 'pg', '~> 1.1'
 
 gem 'devise'
 # Use the Puma web server [https://github.com/puma/puma]
-gem 'puma', '~> 5.0'
+gem 'puma', '~> 5.6.1'
 
 # Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
 gem 'importmap-rails'

@@ -3,7 +3,8 @@ node_modules
 npm-debug.log
 yarn-debug.log
 yarn-error.log
-
+README.md
+*.md 
 # Ignore Rails specific files and directories
 /log/*
 /tmp/*
