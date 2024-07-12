@@ -592,3 +592,328 @@ networks:
 ```
 
 This configuration ensures that your application handles cron jobs, serves React code, backs up and persists the database, and maintains local uploaded files across deployments.
+
+Sure, let's delve deeper into each question to ensure a comprehensive understanding and approach.
+
+### 1. What about cron jobs?
+
+**Running Cron Jobs in Docker:**
+
+For managing cron jobs in a Dockerized environment, you can create a dedicated container that runs a cron daemon. This approach ensures that your scheduled tasks run independently of your web application containers. Here’s a detailed setup:
+
+**Dockerfile.cron:**
+```Dockerfile
+FROM ruby:3.1.2
+
+WORKDIR /app
+
+# Install dependencies
+RUN apt-get update -qq && apt-get install -y cron
+
+# Copy application code
+COPY . .
+
+# Install gems
+RUN bundle install
+
+# Copy the crontab file to the cron.d directory
+COPY cronjobs /etc/cron.d/my-cron-jobs
+
+# Give execution rights on the cron job
+RUN chmod 0644 /etc/cron.d/my-cron-jobs
+
+# Create the log file to be able to run tail
+RUN touch /var/log/cron.log
+
+# Run the command on container startup
+CMD cron && tail -f /var/log/cron.log
+```
+
+**cronjobs file:**
+```cron
+# Example of a cron job running a Rails task every hour
+0 * * * * cd /app && RAILS_ENV=production bundle exec rake my:task >> /var/log/cron.log 2>&1
+```
+
+**docker-compose.yml:**
+```yaml
+version: '3.9'
+
+services:
+  web-blue:
+    build: .
+    container_name: web-blue
+    ports:
+      - "127.0.0.1:3001:3000"
+    volumes:
+      - .:/app
+      - uploads:/app/public/uploads
+    depends_on:
+      - db
+      - redis
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - REDIS_URL=${REDIS_URL}
+    command: ["bash", "-c", "rm -f tmp/pids/server.pid && bundle exec puma -C config/puma.rb"]
+    networks:
+      - budget-net
+
+  web-green:
+    build: .
+    container_name: web-green
+    ports:
+      - "127.0.0.1:3002:3000"
+    volumes:
+      - .:/app
+      - uploads:/app/public/uploads
+    depends_on:
+      - db
+      - redis
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - REDIS_URL=${REDIS_URL}
+    command: ["bash", "-c", "rm -f tmp/pids/server.pid && bundle exec puma -C config/puma.rb"]
+    networks:
+      - budget-net
+
+  db:
+    image: postgres:15.3
+    container_name: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    networks:
+      - budget-net
+
+  redis:
+    image: redis:7.2.5
+    container_name: redis
+    ports:
+      - "127.0.0.1:6379:6379"  
+    volumes:
+      - redis-data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    networks:
+      - budget-net
+
+  sidekiq:
+    build: .
+    container_name: sidekiq
+    command: ["bundle", "exec", "sidekiq", "-C", "config/sidekiq.yml"]
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - REDIS_URL=${REDIS_URL}
+    networks:
+      - budget-net
+
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    container_name: nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - web-blue
+      - web-green
+    networks:
+      - budget-net
+
+  cron:
+    build:
+      context: .
+      dockerfile: Dockerfile.cron
+    volumes:
+      - .:/app
+    environment:
+      - RAILS_ENV=production
+    networks:
+      - budget-net
+
+volumes:
+  pgdata:
+  redis-data:
+  uploads:
+
+networks:
+  budget-net:
+    driver: bridge
+```
+
+### 2. What about React code?
+
+**Serving React Code in a Rails Application:**
+
+Your React code can be managed and served within the Rails application using Webpacker. Here's a comprehensive setup:
+
+1. **Ensure Webpacker is Installed:**
+   Add Webpacker to your Gemfile:
+   ```ruby
+   gem 'webpacker'
+   ```
+
+2. **Install Webpacker and React:**
+   Run the following commands to set up Webpacker and install React:
+   ```bash
+   rails webpacker:install
+   rails webpacker:install:react
+   ```
+
+3. **Webpacker Configuration:**
+   Webpacker will create a `config/webpacker.yml` file. Make sure it’s correctly configured for your environment.
+
+4. **Organizing Your React Code:**
+   Your React code should be placed in the `app/javascript` directory. You can create components and other JavaScript files here.
+
+5. **Including React Components in Rails Views:**
+   Use the `react-rails` gem to include React components in your Rails views. Add it to your Gemfile:
+   ```ruby
+   gem 'react-rails'
+   ```
+   Then, run:
+   ```bash
+   rails generate react:install
+   ```
+
+6. **Example React Component:**
+   ```javascript
+   // app/javascript/components/HelloWorld.js
+   import React from 'react';
+
+   const HelloWorld = () => (
+     <div>Hello, World!</div>
+   );
+
+   export default HelloWorld;
+   ```
+
+7. **Include React Component in a Rails View:**
+   ```erb
+   <!-- app/views/welcome/index.html.erb -->
+   <%= javascript_pack_tag 'application' %>
+   <%= react_component("HelloWorld") %>
+   ```
+
+### 3. How will the db be backed up?
+
+**Database Backup Strategy:**
+
+You can create automated backups of your PostgreSQL database using `pg_dump` and a scheduled cron job in a separate container:
+
+**Dockerfile.db_backup:**
+```Dockerfile
+FROM postgres:15.3
+
+COPY ./backup_script.sh /usr/local/bin/backup_script.sh
+
+RUN chmod +x /usr/local/bin/backup_script.sh
+```
+
+**backup_script.sh:**
+```bash
+#!/bin/bash
+
+PGPASSWORD=$POSTGRES_PASSWORD pg_dump -U $POSTGRES_USER -d $POSTGRES_DB > /backups/db_backup_$(date +%Y%m%d%H%M%S).sql
+```
+
+**docker-compose.yml:**
+```yaml
+db-backup:
+  build:
+    context: .
+    dockerfile: Dockerfile.db_backup
+  volumes:
+    - pgdata:/var/lib/postgresql/data
+    - ./db_backups:/backups
+  environment:
+    - POSTGRES_USER=${POSTGRES_USER}
+    - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    - POSTGRES_DB=${POSTGRES_DB}
+  entrypoint: ["/usr/local/bin/backup_script.sh"]
+  networks:
+    - budget-net
+```
+
+You can schedule the backup using a cron job on the host machine or in a separate cron container.
+
+### 4. How is the database persisted? Do we need volume or commit? / EC2 backup any issue
+
+**Database Persistence:**
+
+**Using Docker Volumes:**
+Docker volumes are the preferred way to persist data in Docker. You have already defined a volume for your PostgreSQL database:
+
+```yaml
+volumes:
+  pgdata:
+```
+
+This ensures that your database data is stored outside the container and will persist even if the container is destroyed or recreated.
+
+**EC2 Backup Considerations:**
+When deploying on EC2, use Amazon EBS snapshots to back up your volumes regularly. This provides a reliable backup solution and ensures that your data is safe.
+
+**Example AWS CLI Command for EBS Snapshot:**
+```bash
+aws ec2 create-snapshot --volume-id vol-1234567890abcdef0 --description "Snapshot of pgdata volume"
+```
+
+### 5. How will local uploaded files be persisted across deployments?
+
+**Persisting Uploaded Files:**
+
+Local uploaded files should be stored in a Docker volume to ensure they are not lost across deployments. You can define a volume for your uploads in your `docker-compose.yml`:
+
+```yaml
+volumes:
+  uploads:
+```
+
+Mount this volume in your web service containers:
+
+```yaml
+web-blue:
+  ...
+  volumes:
+    - .:/app
+    - uploads:/app/public/uploads
+  ...
+
+web-green:
+  ...
+  volumes:
+    - .:/app
+    - uploads:/app/public/uploads
+  ...
+```
+
+This ensures that files uploaded to `/app/public/uploads` are persisted across container restarts and deployments.
+
+### Summary
+
+To ensure your Docker-based Ruby on Rails application with a React front-end runs smoothly:
+
+- **Cron Jobs:** Use a dedicated container for cron jobs with a custom Dockerfile and crontab setup.
+- **React Code:** Manage and serve React code using Webpacker and the `react-rails` gem within your Rails application.
+- **
+
+Database Backups:** Implement automated backups using `pg_dump` in a cron job or backup script, and consider EBS snapshots for EC2 deployments.
+- **Database Persistence:** Use Docker volumes for data persistence, ensuring data is stored outside the container.
+- **Uploaded Files Persistence:** Use Docker volumes for uploaded files to ensure they persist across deployments.
+
+Feel free to reach out if you need further assistance or have additional questions!
