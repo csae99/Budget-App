@@ -1,49 +1,49 @@
-# Use Ruby 3.1.2 as the base image
+# Use a Ruby base image
 FROM ruby:3.1.2
 
-# Add a user 'deploy' with UID 1000 and GID 1000
+# Create a deploy group and user
 RUN groupadd -r deploy -g 1000 && useradd -m -r -u 1000 -g deploy deploy
 
-# Set the working directory in the container
+# Set up the working directory
 WORKDIR /app
 
-# Install system dependencies with --no-install-recommends
+# Install dependencies
 RUN apt-get update -qq && \
     apt-get install -y --no-install-recommends \
-        build-essential \
-        nodejs \
-        yarn \
-        libpq-dev \
-        imagemagick && \
+    build-essential \
+    curl \
+    gnupg \
+    nodejs \
+    libpq-dev \
+    imagemagick && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Install Bundler with a specific version
+# Add Yarn GPG key and Yarn repository
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor -o /usr/share/keyrings/yarn-archive-keyring.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/yarn-archive-keyring.gpg] https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
+    apt-get update && apt-get install -y yarn
+
+# Install bundler
 RUN gem install bundler:2.3.6
 
-# Copy the Gemfile and Gemfile.lock into the container
+# Copy Gemfile and Gemfile.lock first to leverage Docker cache
 COPY Gemfile Gemfile.lock ./
 
-# Install Ruby dependencies
+# Install gems
 RUN bundle install
 
-# Copy the rest of the application code into the container
-COPY . .
+# Copy the rest of the application code
+COPY . ./
 
-# Precompile assets for production
+# Install JavaScript dependencies
+RUN yarn install
+
+# Precompile assets
 RUN bundle exec rake assets:precompile
 
-# Copy entrypoint script into the image
-COPY entrypoint.sh /usr/bin/
-
-# Ensure the entrypoint script is executable
-RUN chmod +x /usr/bin/entrypoint.sh
-
-# Expose the port on which the application will run
+# Expose the application port
 EXPOSE 3000
 
-# Use the entrypoint script to handle server start and migrations
-ENTRYPOINT ["entrypoint.sh"]
-
-# Start the Rails application with Puma
+# Start the Rails server
 CMD ["bash", "-c", "rm -f tmp/pids/server.pid && bundle exec puma -C config/puma.rb"]
