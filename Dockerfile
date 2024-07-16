@@ -19,10 +19,10 @@ RUN apt-get update -qq && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Add Yarn GPG key and Yarn repository
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor -o /usr/share/keyrings/yarn-archive-keyring.gpg && \
-    echo "deb [signed-by=/usr/share/keyrings/yarn-archive-keyring.gpg] https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
-    apt-get update && apt-get install -y yarn
+# # Add Yarn GPG key and Yarn repository
+# RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor -o /usr/share/keyrings/yarn-archive-keyring.gpg && \
+#     echo "deb [signed-by=/usr/share/keyrings/yarn-archive-keyring.gpg] https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
+#     apt-get update && apt-get install -y yarn
 
 # Install bundler
 RUN gem install bundler:2.3.6
@@ -36,8 +36,8 @@ RUN bundle install
 # Copy the rest of the application code
 COPY . ./
 
-# Install JavaScript dependencies
-RUN yarn install
+# # Install JavaScript dependencies
+# RUN yarn install
 
 # Precompile assets
 RUN bundle exec rake assets:precompile
