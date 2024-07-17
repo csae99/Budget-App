@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: budget-app
+  labels:
+    app: budget-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: budget-app
+  template:
+    metadata:
+      labels:
+        app: budget-app
+    spec:
+      containers:
+        - name: budget-app
+          image: krishnavamshi933/budget:v2
+          env:
+            - name: DATABASE_URL
+              value: "postgres://Budgy:budgy_password@postgres:5432/Budgy_production"
+            - name: RAILS_ENV
+              value: production
+            - name: SECRET_KEY_BASE
+              value: "6eb35a2c71c6f9147eb69084bb23374bfe503eeb90b4b51fcfa5b803cb0e2f1e06d13d9136a94e60bc548ebcbc9dfb68ad3cfc05c614c83da767207adada9256"
+          ports:
+            - containerPort: 3000
+          
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: budget-app
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3000
+      targetPort: 3000
+  selector:
+    app: budget-app

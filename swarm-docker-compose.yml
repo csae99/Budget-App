@@ -2,58 +2,26 @@ version: '3.9'
 
 services:
   web-blue:
-    build: .
+    image: krishnavamshi933/budget-app-web-blue:latest
     ports:
       - "3001:3000"
-    volumes:
-      - .:/app
-    depends_on:
-      - db
-      - redis
-      - redis2
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - REDIS_URL=${REDIS_URL}
-      - REDIS2_URL=${REDIS2_URL}
-    command: ["bash", "-c", "rm -f tmp/pids/server.pid && bundle exec puma -C config/puma.rb"]
-    networks:
-      - budget-net
     deploy:
       replicas: 1
-      update_config:
-        parallelism: 1
-        delay: 10s
       restart_policy:
         condition: on-failure
+    networks:
+      - budget-net
 
   web-green:
-    build: .
+    image: krishnavamshi933/budget-app-web-green:latest
     ports:
       - "3002:3000"
-    volumes:
-      - .:/app
-    depends_on:
-      - db
-      - redis
-      - redis2
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - REDIS_URL=${REDIS_URL}
-      - REDIS2_URL=${REDIS2_URL}
-    command: ["bash", "-c", "rm -f tmp/pids/server.pid && bundle exec puma -C config/puma.rb"]
-    networks:
-      - budget-net
     deploy:
       replicas: 1
-      update_config:
-        parallelism: 1
-        delay: 10s
       restart_policy:
         condition: on-failure
+    networks:
+      - budget-net
 
   db:
     image: postgres:15.3
@@ -63,33 +31,25 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
-    networks:
-      - budget-net
     deploy:
       replicas: 1
-      update_config:
-        parallelism: 1
-        delay: 10s
       restart_policy:
         condition: on-failure
+    networks:
+      - budget-net
 
   redis:
     image: redis:7.2.5
     ports:
-      - "6379:6379"  
+      - "6379:6379"
     volumes:
       - redis-data:/data
-      - ./redis.conf:/usr/local/etc/redis/redis.conf
-    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
-    networks:
-      - budget-net
     deploy:
       replicas: 1
-      update_config:
-        parallelism: 1
-        delay: 10s
       restart_policy:
         condition: on-failure
+    networks:
+      - budget-net
 
   redis2:
     image: redis:7.2.5
@@ -97,61 +57,44 @@ services:
       - "6380:6379"
     volumes:
       - redis2-data:/data
-      - ./redis2.conf:/usr/local/etc/redis/redis2.conf
-    command: ["redis-server", "/usr/local/etc/redis/redis2.conf"]
-    networks:
-      - budget-net
     deploy:
       replicas: 1
-      update_config:
-        parallelism: 1
-        delay: 10s
       restart_policy:
         condition: on-failure
+    networks:
+      - budget-net
 
   sidekiq:
-    build: .
+    image: krishnavamshi933/budget-app-sidekiq:latest
     command: ["bundle", "exec", "sidekiq", "-C", "config/sidekiq.yml"]
     volumes:
       - .:/app
-    depends_on:
-      - db
-      - redis
-      - redis2
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
-      - REDIS_URL=${REDIS_URL}
-      - REDIS2_URL=${REDIS2_URL}
+      - REDIS_URL=redis://redis:6379/0
+      - REDIS2_URL=redis://redis2:6379/0
     networks:
       - budget-net
-    deploy:
-      replicas: 1
-      update_config:
-        parallelism: 1
-        delay: 10s
-      restart_policy:
-        condition: on-failure
 
   nginx:
-    build:
-      context: .
-      dockerfile: Dockerfile.nginx
+    image: krishnavamshi933/budget-app-nginx:latest
     ports:
       - "80:80"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
     depends_on:
       - web-blue
       - web-green
     networks:
       - budget-net
-    deploy:
-      replicas: 1
-      update_config:
-        parallelism: 1
-        delay: 10s
-      restart_policy:
-        condition: on-failure
 
 volumes:
   pgdata:
