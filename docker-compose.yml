@@ -8,6 +8,7 @@ services:
       - "127.0.0.1:3001:3000"
     volumes:
       - .:/app
+      # - node_modules:/node_modules
     depends_on:
       - db
       - redis
@@ -29,6 +30,7 @@ services:
       - "127.0.0.1:3002:3000"
     volumes:
       - .:/app
+      # - node_modules:/node_modules
     depends_on:
       - db
       - redis
@@ -114,6 +116,7 @@ volumes:
   pgdata:
   redis-data:
   redis2-data:
+  # node_modules:
 
 networks:
   budget-net:
