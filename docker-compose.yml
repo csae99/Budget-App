@@ -2,7 +2,8 @@ version: '3.9'
 
 services:
   web-blue:
-    build: .
+    # build: .
+    image: krishnavamshi933/budget-app-server:latest
     container_name: web-blue
     ports:
       - "127.0.0.1:3001:3000"
@@ -24,7 +25,8 @@ services:
       - budget-net
 
   web-green:
-    build: .
+    # build: .
+    image: krishnavamshi933/budget-app-server:latest
     container_name: web-green
     ports:
       - "127.0.0.1:3002:3000"
