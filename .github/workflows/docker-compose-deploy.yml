@@ -17,7 +17,7 @@ jobs:
 
       - name: Deploy to server
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@52.66.168.202 <<EOF
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.SERVER_IP }} <<EOF
             cd /home/ubuntu/workspace/Budget-App/
             docker-compose pull
             docker-compose up -d
