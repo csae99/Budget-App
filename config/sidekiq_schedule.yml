@@ -1,0 +1,18 @@
+# config/sidekiq_schedule.yml
+
+your_job_name:
+  cron: "0 * * * *"  # Execute every hour, on the hour (adjust as needed)
+  class: YourWorkerClass
+  queue: default
+  args:
+    - arg1: value1
+    - arg2: value2
+
+another_job:
+  cron: "*/5 * * * *"  # Execute every 5 minutes
+  class: AnotherWorkerClass
+  queue: high
+  args:
+    - arg1: value1
+
+# Add more jobs as needed
