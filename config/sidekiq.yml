@@ -1,0 +1,18 @@
+# config/sidekiq.yml
+:production:
+  :concurrency: 5
+  :queues:
+    - critical
+    - default
+  :url: redis://redis:6379/0
+:staging:
+  :concurrency: 5
+  :queues:
+    - critical
+    - default
+  :url: redis://redis:6379/0
+:development:
+  :concurrency: 5
+  :queues:
+    - default
+  :url: redis://redis:6379/0
