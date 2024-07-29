@@ -1,0 +1,42 @@
+# Ignore node_modules and log files
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+README.md
+*.md 
+# Ignore Rails specific files and directories
+/log/*
+/tmp/*
+/vendor/bundle
+/public/assets
+/public/packs
+/public/packs-test
+/public/packs-dev
+.byebug_history
+.bundle
+coverage
+
+# Ignore Docker files
+Dockerfile
+.dockerignore
+
+# Ignore Git files
+.git
+.gitignore
+
+# Ignore environment variables files
+# .env
+# .env.*
+
+# Ignore editor and OS specific files
+*.swp
+*~
+.project
+.idea
+.vscode
+.DS_Store
+Thumbs.db
+
+# Ignore unnecessary documentation files
+*.md
