@@ -1,0 +1,73 @@
+name: Build
+
+on:
+    workflow_dispatch:
+        inputs:
+            branch:
+              description: 'Eu-comm branch name'
+              required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+            ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+    
+          
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          repository: krishnavamshi933/react-code # react code repo i.e eu-comm
+          ref: ${{ github.event.inputs.branch }}  # Use the input value for branch name
+          fetch-depth: 0
+          path: react-code
+ 
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+            node-version: '16'  # Specify the Node.js version you need
+
+      - name: Checkout Main Repository
+        uses: actions/checkout@v3
+        with:
+         path: wdesign
+
+    #   - name: Checking Directories
+    #     run: |
+    #       pwd
+    #       ls -ltha
+    #       ls -l eu-comm
+    #       ls -l wdesign
+
+      - name: Install Dependencies
+        run: cd react-code && npm install
+
+      - name: Build Application
+        run: cd react-code && npm run build
+  
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+  
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+  
+      - name: Build Docker image
+        run: |
+          cd wdesign
+          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/budget-app-server:${{ github.event.inputs.image_tag }} .
+          docker tag ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/budget-app-server:${{ github.event.inputs.image_tag }} ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/budget-app-server:latest
+  
+      - name: Push Docker image to ECR
+        run: |
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/budget-app-server:${{ github.event.inputs.image_tag }}
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/budget-app-server:latest
