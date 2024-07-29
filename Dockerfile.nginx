@@ -1,0 +1,8 @@
+FROM nginx:latest
+
+# Add a user 'deploy' with UID 1000 and GID 1000
+RUN groupadd -r deploy -g 1000 && useradd -m -r -u 1000 -g deploy deploy
+
+COPY nginx.conf /etc/nginx/nginx.conf
+
+CMD ["nginx", "-g", "daemon off;"]
