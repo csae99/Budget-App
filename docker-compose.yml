@@ -4,7 +4,7 @@ services:
   web-blue:
     # build: .
     # image: krishnavamshi933/budget-app-server:latest
-    image: 376304930614.dkr.ecr.ap-south-1.amazonaws.com/budget-app-server:latest
+    image: 123345666.dkr.ecr.ap-south-1.amazonaws.com/budget-app-server:latest
     container_name: web-blue
     ports:
       - "127.0.0.1:3001:3000"
@@ -28,7 +28,7 @@ services:
   web-green:
     # build: .
     # image: krishnavamshi933/budget-app-server:latest
-    image: 376304930614.dkr.ecr.ap-south-1.amazonaws.com/budget-app-server:latest
+    image: 12233444555.dkr.ecr.ap-south-1.amazonaws.com/budget-app-server:latest
     container_name: web-green
     ports:
       - "127.0.0.1:3002:3000"
