@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: budget-app
-          image: krishnavamshi933/budget:v2
+          image: shubham554/budget-app:v1
           env:
             - name: DATABASE_URL
               value: "postgres://Budgy:budgy_password@postgres:5432/Budgy_production"
